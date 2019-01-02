@@ -1,8 +1,10 @@
 ﻿.idea/**
+.idea/
+.idea
 __pycache__/**
 __pycache__
-.idea/
-.idea/lab2.iml
-.idea/misc.xml
-.idea/modules.xml
 .idea/workspace.xml
+
+# file: ~/.gitignore_global
+.idea
+

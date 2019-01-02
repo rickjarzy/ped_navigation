@@ -4,7 +4,7 @@ import sys
 import pdr_functions
 # Paul Arzberger
 # 00311430
-# 2nd Lab - Navigation Systems - WS18/19
+# Navigation Systems - 2nd Lab Pedestrian Navigation - WS18/19
 # main file
 
 
