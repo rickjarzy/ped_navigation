@@ -2,3 +2,7 @@
 __pycache__/**
 __pycache__
 .idea/
+.idea/lab2.iml
+.idea/misc.xml
+.idea/modules.xml
+.idea/workspace.xml
