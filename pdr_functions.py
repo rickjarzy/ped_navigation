@@ -23,18 +23,20 @@ def create_data_matrix(input_txt_path):
     # read out data and store it onto a pandas dataframe
     with open(input_txt_path, "r") as data_file:
         header = data_file.readline().split("\n")[0].split()    # read out the header and store it as a list
-        #print(header)
+        print(" - ", header)
         for line in data_file:                                  # walk through the txt file and read out each line
             #print(line)
 
             line = line.split("\n")[0].split()                  # store each line as list and split it by blank space
-            data[line[0]] = {header[1]: float(line[1]),         # store each value of the line in a dict with the time as key and the rest as values - reusing the header
+            data[line[0]] = {header[0]: int(line[0]),
+                             header[1]: float(line[1]),         # store each value of the line in a dict with the time as key and the rest as values - reusing the header
                              header[2]: float(line[2]),         # ATTENTION! - the pandas dataframe rearenages the data by sorting it by alphabet!
                              header[3]: float(line[3]),
                              header[4]: float(line[4]),
                              header[5]: float(line[5]),
                              header[6]: float(line[6]),
                              header[7]: float(line[7]),
+                             "acc_total": numpy.sqrt(float(line[1])**2 + float(line[2])**2 + float(line[3])**2),
             }
 
 
