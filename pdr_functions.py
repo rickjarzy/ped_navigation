@@ -37,6 +37,7 @@ def create_data_matrix(input_txt_path):
                              header[6]: float(line[6]),
                              header[7]: float(line[7]),
                              "acc_total": numpy.sqrt(float(line[1])**2 + float(line[2])**2 + float(line[3])**2),
+                             "baro_fit": None,
             }
 
 

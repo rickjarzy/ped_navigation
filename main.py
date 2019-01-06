@@ -1,14 +1,33 @@
 import pandas as pd
 import numpy
+import scipy
 from matplotlib import pyplot as plt
 import sys
 import pdr_functions
+
 # Paul Arzberger
 # 00311430
 # Navigation Systems - 2nd Lab Pedestrian Navigation - WS18/19
 # main file
 
+def outlier_detection(input_array):
 
+
+    median = numpy.nanmedian(input_array)               # get the median of the input array
+    dist_median = numpy.absolute(input_array - median)  # array where the input data is subtracted with the median
+
+
+    if numpy.max(dist_median) > 0.5:
+        print("- Median: ", median)
+        print("- max dist_median: ", numpy.max(dist_median))
+        print("- data: \n", input_array)
+
+        return 1
+
+def median_filter(input_array):
+
+
+    pass
 
 if __name__ == "__main__":
 
@@ -22,6 +41,19 @@ if __name__ == "__main__":
     # store the txt data onto a pandas dataframe
     data = pdr_functions.create_data_matrix(r"data.txt")
 
+    # outlier detection
+    print("Outlier detection Median Distance Test")
+    median_window_size = 30
+    sub_data = data["baro"]
+    count_outlier = 0
+    for sub_data in range(0,len(data["baro"]),median_window_size):
+
+        check_sum = outlier_detection(data["baro"][sub_data:sub_data + median_window_size])
+
+        if check_sum == 1:
+            count_outlier += 1
+
+    print("Sum outlier: ", count_outlier)
 
     # plotting the data
     time = data["time"].tolist()
