@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy
-
 # Paul Arzberger
 # 00311430
 # Navigation Systems - 2nd Lab Pedestrian Navigation - WS18/19
@@ -38,7 +37,16 @@ def create_data_matrix(input_txt_path):
                              header[7]: float(line[7]),
                              "acc_total": numpy.sqrt(float(line[1])**2 + float(line[2])**2 + float(line[3])**2),
                              "baro_fit": None,
-            }
+                             "a_x_filtered": None,
+                             "a_y_filtered": None,
+                             "a_z_filtered": None,
+                             "acc_total_filtered": None,
+                             "m_x_filtered": None,
+                             "m_y_filtered": None,
+                             "m_z_filtered": None,
+
+                             }
+
 
 
     data = pd.DataFrame.from_dict(data).T

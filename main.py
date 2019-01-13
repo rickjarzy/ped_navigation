@@ -1,9 +1,11 @@
 import pandas as pd
 import numpy
-import scipy
+from scipy import signal
 from matplotlib import pyplot as plt
 import sys
 import pdr_functions
+
+
 
 # Paul Arzberger
 # 00311430
@@ -41,6 +43,13 @@ if __name__ == "__main__":
     # store the txt data onto a pandas dataframe
     data = pdr_functions.create_data_matrix(r"data.txt")
 
+    # filter raw data and store it on seperate Series
+    data["a_x_filtered"] = signal.savgol_filter(data["a_x"], 7, 2)
+    data["a_y_filtered"] = signal.savgol_filter(data["a_y"], 7, 2)
+    data["a_z_filtered"] = signal.savgol_filter(data["a_z"], 7, 2)
+    data["acc_total_filtered"] = numpy.sqrt(data["a_x_filtered"]**2 + data["a_y_filtered"]**2 + data["a_z_filtered"]**2)
+
+
     # outlier detection
     print("Outlier detection Median Distance Test")
     median_window_size = 30
@@ -61,22 +70,35 @@ if __name__ == "__main__":
     ax = fig.add_subplot(211, frameon=True)
     plt.title("NavSys - Accelerometer and Magnometer Data")
     plt.plot(time, data["acc_total"].tolist(), label="acc total")
-    plt.plot(time, data["a_x"].tolist(), label="acc x")
-    plt.plot(time, data["a_y"].tolist(), label="acc y")
-    plt.plot(time, data["a_z"].tolist(), label="acc z")
+    #plt.plot(time, data["a_x"].tolist(), label="acc x")
+    #plt.plot(time, data["a_x_filtered"].tolist(), label="acc x filtered")
+    #plt.plot(time, data["a_y"].tolist(), label="acc y")
+    #plt.plot(time, data["a_z"].tolist(), label="acc z")
+    plt.plot(time, data["acc_total_filtered"], label="acc total components sav gol filtered")
+    plt.plot(time, signal.savgol_filter(data["acc_total"].tolist(), 7, 2), label="acc total sav gol filtered")
 
-    plt.plot(time, data["m_x"].tolist(), label="m_x")
-    plt.plot(time, data["m_y"].tolist(), label="m_y")
-    plt.plot(time, data["m_z"].tolist(), label="m_z")
+    #plt.plot(time, data["m_x"].tolist(), label="m_x")
+    #plt.plot(time, data["m_y"].tolist(), label="m_y")
+    #plt.plot(time, data["m_z"].tolist(), label="m_z")
     plt.grid(True)
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=5)
+
+    # find baro peaks
+    baro_peaks_ids = signal.find_peaks(data["baro"].tolist(), distance=1)       # returns ids of array
+    print(baro_peaks_ids[0])
+    baro_peak_mask = data["baro"].isin(list(baro_peaks_ids[0]))                 # returns a true false mask if the id is in the list
+    baro_peak_data = data["baro"].loc[~baro_peak_mask]                          # here only the peaks should be selected but something goes wrong
+    print(baro_peak_data)
+
 
     ax2 = fig.add_subplot(212, frameon=True)
     plt.title("NavSys - Barometer Data raw")
     plt.plot(time, data["baro"].tolist(), label="baro")
+    #plt.plot(baro_peak_time, baro_peaks[0], label="baro peaks")
     plt.grid(True)
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=5)
 
     plt.show()
+
 
     print("\n======================================\nProgramm ENDE")
