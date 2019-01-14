@@ -44,6 +44,8 @@ def create_data_matrix(input_txt_path):
                              "m_x_filtered": None,
                              "m_y_filtered": None,
                              "m_z_filtered": None,
+                             "baro_median_filtered": None,
+                             "baro_savgol_filt": None,
 
                              }
 
