@@ -41,6 +41,19 @@ if __name__ == "__main__":
     data["m_y_filtered"] = signal.savgol_filter(data["m_y"], 61, 2)
     data["m_z_filtered"] = signal.savgol_filter(data["m_z"], 61, 2)
 
+    # find peaks
+    peaks = signal.find_peaks(data["acc_total_filtered"])
+
+    print(peaks)
+
+    # three steps for PDR
+    # 1. step detection
+    # 2. step length estimation
+    # 3. step direction estimation
+
+
+
+
 
     # plotting the data
     # ==================================================================================================================
@@ -83,7 +96,7 @@ if __name__ == "__main__":
     ax4 = fig.add_subplot(212, frameon=True)
     plt.title("NavSys - Baro Filtering")
     plt.plot(time, data["baro_median_filt"], label="baro median filtered")
-    plt.plot(time, data["data_savgol_filt"], label="baro savgol filtered")
+    plt.plot(time, signal.medfilt(data["data_savgol_filt"], 83), label="baro savgol filtered")
     plt.grid(True)
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=5)
 
