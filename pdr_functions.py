@@ -23,11 +23,12 @@ def create_data_matrix(input_txt_path):
     with open(input_txt_path, "r") as data_file:
         header = data_file.readline().split("\n")[0].split()    # read out the header and store it as a list
         print(" - ", header)
+        cou_index = 0
         for line in data_file:                                  # walk through the txt file and read out each line
             #print(line)
 
             line = line.split("\n")[0].split()                  # store each line as list and split it by blank space
-            data[line[0]] = {header[0]: int(line[0]),
+            data[str(cou_index)] = {header[0]: int(line[0]),
                              header[1]: float(line[1]),         # store each value of the line in a dict with the time as key and the rest as values - reusing the header
                              header[2]: float(line[2]),         # ATTENTION! - the pandas dataframe rearenages the data by sorting it by alphabet!
                              header[3]: float(line[3]),
@@ -46,9 +47,11 @@ def create_data_matrix(input_txt_path):
                              "m_z_filtered": None,
                              "baro_median_filtered": None,
                              "baro_savgol_filt": None,
+                             "height_median": None,
+                             "height_savgol": None,
 
                              }
-
+            cou_index += 1
 
 
     data = pd.DataFrame.from_dict(data).T
