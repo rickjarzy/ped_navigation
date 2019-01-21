@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy
-from scipy import signal
+from scipy import signal, ndimage, stats
 from matplotlib import pyplot as plt
 import sys
 import pdr_functions
@@ -26,10 +26,11 @@ if __name__ == "__main__":
     # store the txt data onto a pandas dataframe
     data = pdr_functions.create_data_matrix(r"data.txt")
 
-    # filter raw data and store it on seperate Series
+    # filter raw data and store it on seperate Series using median and Savitzky Golay filters with different Moving windows
     data["a_x_filtered"] = signal.savgol_filter(data["a_x"], 13, 2)
     data["a_y_filtered"] = signal.savgol_filter(data["a_y"], 13, 2)
     data["a_z_filtered"] = signal.savgol_filter(data["a_z"], 13, 2)
+    data["acc_total"] = numpy.sqrt(data["a_x"]**2 + data["a_y"]**2 + data["a_z"]**2)
     data["acc_total_filtered"] = numpy.sqrt(data["a_x_filtered"]**2 + data["a_y_filtered"]**2 + data["a_z_filtered"]**2)
     data["baro_median_filt"] = signal.medfilt(signal.medfilt(data["baro"], 41), 83)
     data["height"] = (288.15/0.0065) * (1- (data["baro_median_filt"]/1013.25)**(1/5.255))
@@ -42,6 +43,12 @@ if __name__ == "__main__":
     data["m_x_filtered"] = signal.savgol_filter(data["m_x"], 61, 2)
     data["m_y_filtered"] = signal.savgol_filter(data["m_y"], 61, 2)
     data["m_z_filtered"] = signal.savgol_filter(data["m_z"], 61, 2)
+
+    # step classification
+
+    data["slope_height"] = ndimage.filters.generic_filter(input=data["height_savgol"], function=pdr_functions.LinReg, size=500 )
+    data["step_size"] = numpy.where(data["slope_height"] < 0.001, 0.6, 0.3)
+    print(data["slope_height"])
 
     # three steps for PDR
     # 1. step detection
@@ -80,12 +87,14 @@ if __name__ == "__main__":
     data["yaw_mag"] = numpy.arctan2(gegen_kath , an_kath)
 
         #subdata yaw - HEADING
-    data_sub_yaw = data["yaw_mag"].iloc[indizes_p_max_heading]
-
+    data_sub_yaw = data["yaw_mag"].iloc[indizes_p_min_heading]
+    data_sub_step = data["step_size"].iloc[indizes_p_min_heading]
     #print("data sub yaw\n", data_sub_yaw)
 
-    north_delta = step_fix * numpy.cos(data_sub_yaw)        # later on transformed to d_phi
-    east_delta = step_fix * numpy.sin(data_sub_yaw)
+
+
+    north_delta = data_sub_step * numpy.cos(data_sub_yaw)        # later on transformed to d_phi
+    east_delta = data_sub_step * numpy.sin(data_sub_yaw)
 
     #print("north_delta\n", north_delta)
 
@@ -105,6 +114,8 @@ if __name__ == "__main__":
 
     phi_traj = d_phi_deg_csum + start_phi
     lam_traj = d_lam_deg_csum + start_lam
+
+    pdr_functions.write_phi_lam_txt(phi_traj, lam_traj, "min_peaks_all_sensors_filtered_dyn_step")
 
 
     # plotting the data
@@ -185,7 +196,7 @@ if __name__ == "__main__":
     # fig 3
     # ==============================================
     fig = plt.figure(3)
-    ax31 = fig.add_subplot(111, frameon=True)
+    ax31 = fig.add_subplot(311, frameon=True)
     plt.title("NavSys - roll and pitch angle out of a_y and a_z")
     plt.plot(time, data["roll"], label="roll angle")
     plt.plot(time, data["pitch"], label="pitch angle")
@@ -194,6 +205,25 @@ if __name__ == "__main__":
     plt.ylabel("rad []")
     plt.grid(True)
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=5)
+
+    ax32 = fig.add_subplot(312, frameon=True)
+    plt.title("NavSys - slope")
+    plt.plot(time, data["slope_height"], label="slope")
+
+    plt.xlabel("time [sec]")
+    plt.ylabel("slope []")
+    plt.grid(True)
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=5)
+
+    ax33 = fig.add_subplot(313, frameon=True)
+    plt.title("NavSys - Höhe")
+    plt.plot(time, data["height"], label="höhe aus baro_median")
+    plt.plot(time, data["height_savgol"], label="höhe aus baro_savgol")
+    plt.grid(True)
+    plt.xlabel("time [sec]")
+    plt.ylabel("elevation [m]")
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=5)
+
 
     # fig 4
     # ==============================================

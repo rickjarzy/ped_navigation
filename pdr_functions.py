@@ -1,9 +1,30 @@
 import pandas as pd
 import numpy
+from scipy import stats
 # Paul Arzberger
 # 00311430
 # Navigation Systems - 2nd Lab Pedestrian Navigation - WS18/19
 # function file
+
+def LinReg(x):
+    time = numpy.arange(1,len(x)+1,1)
+    slope, intercept, r_val, p_val, std_err = stats.linregress(time,x)
+
+    return slope
+
+def write_phi_lam_txt(input_phi, input_lam, input_route):
+    cou = 0
+    phi = input_phi
+    lam = input_lam
+    input_route
+    print("- Create outputfile " + "route_" + input_route + ".txt")
+    with open("tjektory_" + input_route + ".txt", 'w') as outputfile:
+        for element in phi:
+            output_string = "%s %s\n" % (str(element), str(lam[cou]))
+            outputfile.write(output_string)
+            cou += 1
+
+
 
 def create_data_matrix(input_txt_path):
     """
