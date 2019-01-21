@@ -14,8 +14,11 @@ import pdr_functions
 if __name__ == "__main__":
 
     # startpoint
-    phi = 47.06427                  # [°]
-    lam = 15.45313                  # [°]
+    phi = 47.06427 * (numpy.pi / 180) # [rad]
+    lam = 15.45313 * (numpy.pi / 180) # [rad]
+
+    start_phi = 47.06427
+    start_lam = 15.45313
 
     print(sys.argv)     # checking if some extra input from the cmd comes in
 
@@ -47,8 +50,8 @@ if __name__ == "__main__":
     peaks = signal.find_peaks(data["acc_total_filtered"], height=10.5, distance=15)
     indizes_peaks_max = peaks[0]
     print(data.at[str(584), "time"])
-    indizes_p_min_heading = indizes_peaks_max
-    time_peaks_max = [data.at[str(index), "time"] for index in indizes_peaks_max]
+    indizes_p_max_heading = indizes_peaks_max
+    time_peaks_max = [data.at[str(index), "time"] / 1000 for index in indizes_peaks_max]
     data_peaks_max = peaks[1]["peak_heights"]
     print("len data_peaks_max", len(data_peaks_max))
 
@@ -57,10 +60,11 @@ if __name__ == "__main__":
     indizes_peaks_min = peaks_min[0]
     print("len min peaks: ", len(indizes_peaks_min))
     indizes_p_min_heading = [index for index in indizes_peaks_min if data.at[str(index), "acc_total_filtered"] < 10]
-    time_peaks_min = [data.at[str(index), "time"] for index in indizes_peaks_min if data.at[str(index), "acc_total_filtered"] < 10]               # just take those with a reasonable threshold
+    time_peaks_min = [data.at[str(index), "time"] / 1000 for index in indizes_peaks_min if data.at[str(index), "acc_total_filtered"] < 10]               # just take those with a reasonable threshold
     data_peaks_min = [data.at[str(index), "acc_total_filtered"] for index in indizes_peaks_min if data.at[str(index), "acc_total_filtered"] < 10] # just take those with a reasonable threshold
     print("len time_peaks min: ", len(time_peaks_min))
     print("len indizes min heading: ", len(indizes_p_min_heading))
+
     # 2. step length estimation
     step_fix = 0.6  # [m]       fixed value from the angabeblatt
 
@@ -75,12 +79,38 @@ if __name__ == "__main__":
     an_kath = data["m_x_filtered"] * numpy.cos(data["pitch"]) + data["m_y_filtered"] * numpy.sin(data["pitch"]) * numpy.sin(data["roll"] + data["m_z_filtered"] * numpy.sin(data["pitch"]) * numpy.cos(data["roll"]))
     data["yaw_mag"] = numpy.arctan2(gegen_kath , an_kath)
 
+        #subdata yaw - HEADING
+    data_sub_yaw = data["yaw_mag"].iloc[indizes_p_max_heading]
+
+    #print("data sub yaw\n", data_sub_yaw)
+
+    north_delta = step_fix * numpy.cos(data_sub_yaw)        # later on transformed to d_phi
+    east_delta = step_fix * numpy.sin(data_sub_yaw)
+
+    #print("north_delta\n", north_delta)
+
+    # transformation to geographic koordinates
+    # sperical aproximation --> rel pos to geographic coordinates
+    # ============================================================
+    R = 6378137 # Radius in [m]
+    d_phi = north_delta / R                        #   [rad] - reform ... dx = R * d_phi
+    d_lam = east_delta / (R * numpy.cos(phi))      #   [rad] - reform ... dy = R * cos(phi) * d_lam
+
+    # sum up all timeepochs to represent the walked trajektory
+    d_phi_deg = d_phi * (180 / numpy.pi)            # [°]
+    d_lam_deg = d_lam * (180 / numpy.pi)            # [°]
+
+    d_phi_deg_csum = numpy.cumsum(d_phi_deg)
+    d_lam_deg_csum = numpy.cumsum(d_lam_deg)
+
+    phi_traj = d_phi_deg_csum + start_phi
+    lam_traj = d_lam_deg_csum + start_lam
 
 
     # plotting the data
     # ==================================================================================================================
 
-    time = data["time"].tolist()
+    time = [timestamp / 1000 for timestamp in data["time"].tolist()]          # [ms] -->[sec]
     fig = plt.figure(1)
     ax11 = fig.add_subplot(311, frameon=True)
     plt.title("NavSys - Accelerometer Data")
@@ -92,6 +122,8 @@ if __name__ == "__main__":
     plt.plot(time, data["a_z"], label="acc z")
     plt.plot(time, data["a_z_filtered"], label="acc z filtered")
     plt.plot(time, data["acc_total_filtered"], label="acc total components sav gol filtered")
+    plt.xlabel("time [sec]")
+    plt.ylabel("acceleration [m/s²]")
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=5)
 
     ax12 = fig.add_subplot(312, frameon=True)
@@ -103,6 +135,8 @@ if __name__ == "__main__":
     plt.plot(time, data["m_z"], label="m_z")
     plt.plot(time, data["m_z_filtered"], label="m_z_filtered")
     plt.grid(True)
+    plt.xlabel("time [sec]")
+    plt.ylabel("[μT]")
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=5)
 
     ax13 = fig.add_subplot(313, frameon=True)
@@ -112,6 +146,8 @@ if __name__ == "__main__":
     plt.plot(time_peaks_max, data_peaks_max, label="Peaks Acc Total Max", marker='^', markerfacecolor='red', markersize=6)
     plt.plot(time_peaks_min, data_peaks_min, label="Peaks Acc Total Min", marker='^', markerfacecolor='green', markersize=6)
     plt.grid(True)
+    plt.xlabel("time [sec]")
+    plt.ylabel("accelerations total [m/s²]")
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=5)
 
     # fig 2
@@ -120,15 +156,17 @@ if __name__ == "__main__":
 
     ax21 = fig.add_subplot(311, frameon=True)
     plt.title("NavSys - Barometer Data raw")
-    plt.plot(time, data["baro"], label="baron raw")
+    plt.plot(time, data["baro"], label="baro data raw")
     plt.plot(time, data["baro_median_filt"], label="baro median filtered")
-
+    plt.xlabel("time [sec]")
+    plt.ylabel("preausre [hPa]")
     plt.grid(True)
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=5)
 
     ax22 = fig.add_subplot(312, frameon=True)
     plt.title("NavSys - Baro Filtering")
-
+    plt.xlabel("time [sec]")
+    plt.ylabel("preausre [hPa]")
     plt.plot(time, data["baro_median_filt"], label="baro median filtered")
     plt.plot(time, data["baro_savgol_filt"], label="baro savgol and median filtered")
     plt.grid(True)
@@ -139,17 +177,35 @@ if __name__ == "__main__":
     plt.plot(time, data["height"], label="höhe aus baro_median")
     plt.plot(time, data["height_savgol"], label="höhe aus baro_savgol")
     plt.grid(True)
+    plt.xlabel("time [sec]")
+    plt.ylabel("elevation [m]")
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=5)
 
 
     # fig 3
     # ==============================================
     fig = plt.figure(3)
-    ax31 = fig.add_subplot(311, frameon=True)
+    ax31 = fig.add_subplot(111, frameon=True)
     plt.title("NavSys - roll and pitch angle out of a_y and a_z")
     plt.plot(time, data["roll"], label="roll angle")
     plt.plot(time, data["pitch"], label="pitch angle")
     plt.plot(time, data["yaw_mag"], label="yaw magnetic angle")
+    plt.xlabel("time [sec]")
+    plt.ylabel("rad []")
+    plt.grid(True)
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=5)
+
+    # fig 4
+    # ==============================================
+
+    fig = plt.figure(4)
+    ax41 = fig.add_subplot(111, frameon=True)
+    plt.title("NavSys - Trajektory")
+    plt.plot(lam_traj, phi_traj, label="Trajektory")
+    plt.plot(start_lam, start_phi, label="Start", marker='^', markerfacecolor='red', markersize=6)
+    plt.xlabel("λ [°]")
+    plt.ylabel("φ [°]")
+    #plt.plot(start_lam.tail(1), start_phi.tail(1), label="Start", marker='^', markerfacecolor='green', markersize=6)
     plt.grid(True)
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=5)
 
