@@ -1,4 +1,6 @@
 %%  Paul Arzberger
+% NavSys WS18/19
+% 0031430
 %   Plot the computed Trajectory
 clear all;
 clc;
