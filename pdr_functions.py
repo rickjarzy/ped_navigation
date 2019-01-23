@@ -12,15 +12,16 @@ def LinReg(x):
 
     return slope
 
-def write_phi_lam_txt(input_phi, input_lam, input_route):
+def write_phi_lam_txt(input_phi, input_lam, input_step, input_textspecifier):
     cou = 0
     phi = input_phi
     lam = input_lam
-    input_route
-    print("- Create outputfile " + "route_" + input_route + ".txt")
-    with open("tjektory_" + input_route + ".txt", 'w') as outputfile:
+    print(type(phi))
+    print(phi)
+    print("- Create outputfile " + "route_" + input_textspecifier + ".txt")
+    with open("trajektory_" + input_textspecifier + ".txt", 'w') as outputfile:
         for element in phi:
-            output_string = "%s %s\n" % (str(element), str(lam[cou]))
+            output_string = "%s %s %s \n" % (str(element), str(lam[cou]), str(input_step[cou]))
             outputfile.write(output_string)
             cou += 1
 
