@@ -94,8 +94,11 @@ if __name__ == "__main__":
     #print("data sub yaw\n", data_sub_yaw)
 
 
-    north_delta = data_sub_step * numpy.cos(data_sub_yaw)        # later on transformed to d_phi
-    east_delta = data_sub_step * numpy.sin(data_sub_yaw)
+    #north_delta = data_sub_step * numpy.cos(data_sub_yaw)        # later on transformed to d_phi
+    #east_delta = data_sub_step * numpy.sin(data_sub_yaw)
+
+    north_delta = step_fix * numpy.cos(data_sub_yaw)  # later on transformed to d_phi
+    east_delta = step_fix * numpy.sin(data_sub_yaw)
 
     #print("north_delta\n", north_delta)
 
@@ -116,7 +119,7 @@ if __name__ == "__main__":
     phi_traj = d_phi_deg_csum + phi_deg
     lam_traj = d_lam_deg_csum + lam_deg
 
-    pdr_functions.write_phi_lam_txt(phi_traj, lam_traj, data_sub_step,  "min_peaks_all_sensors_filtered_dyn_step")
+    pdr_functions.write_phi_lam_txt(phi_traj, lam_traj, data_sub_step,  "min_peaks_all_sensors_filtered_one_stepsize")
 
 
     # plotting the data
@@ -124,7 +127,7 @@ if __name__ == "__main__":
 
     time = [timestamp / 1000 for timestamp in data["time"].tolist()]          # [ms] -->[sec]
     fig = plt.figure(1)
-    ax11 = fig.add_subplot(311, frameon=True)
+    #ax11 = fig.add_subplot(311, frameon=True)
     #plt.title("NavSys - Accelerometer Data")
     plt.plot(time, data["acc_total"], label="acc total")
     plt.plot(time, data["a_x"], label="acc x raw")
@@ -139,8 +142,8 @@ if __name__ == "__main__":
     #plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=5)
     plt.legend()
 
-
-    ax12 = fig.add_subplot(312, frameon=True)
+    fig = plt.figure(2)
+    #ax12 = fig.add_subplot(312, frameon=True)
     #plt.title("NavSys - Magnetometer Data")
     plt.plot(time, data["m_x"], label="mag x raw")
     plt.plot(time, data["m_x_filtered"], label="mag x SG fit")
@@ -154,7 +157,8 @@ if __name__ == "__main__":
     #plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=5)
     plt.legend()
 
-    ax13 = fig.add_subplot(313, frameon=True)
+    fig = plt.figure(3)
+    #ax13 = fig.add_subplot(313, frameon=True)
     #plt.title("NavSys - Find Peaks")
     #plt.plot(time, data["acc_total"], label="acc total")
     plt.plot(time, data["acc_total_filtered"], label="Acc total out of SG filtered components")
@@ -168,9 +172,9 @@ if __name__ == "__main__":
 
     # fig 2
     # ==============================================
-    fig = plt.figure(2)
+    fig = plt.figure(4)
 
-    ax21 = fig.add_subplot(311, frameon=True)
+    #ax21 = fig.add_subplot(311, frameon=True)
     #plt.title("NavSys - Barometer Data raw")
     plt.plot(time, data["baro"], label="Barometer data raw")
     plt.plot(time, data["baro_median_filt"], label="Barometer median fit")
@@ -180,8 +184,8 @@ if __name__ == "__main__":
     #plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=5)
     plt.legend()
 
-
-    ax22 = fig.add_subplot(312, frameon=True)
+    fig = plt.figure(5)
+    #ax22 = fig.add_subplot(312, frameon=True)
     #plt.title("NavSys - Baro Filtering")
     plt.xlabel("Time [sec]")
     plt.ylabel("Preausre [hPa]")
@@ -191,7 +195,8 @@ if __name__ == "__main__":
     #plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=5)
     plt.legend()
 
-    ax23 = fig.add_subplot(313, frameon=True)
+    fig = plt.figure(6)
+    #ax23 = fig.add_subplot(313, frameon=True)
     #plt.title("NavSys - Höhe")
     plt.plot(time, data["height"], label="Height out of Barometer median fit")
     plt.plot(time, data["height_savgol"], label="Height out of Barometer SG fit")
@@ -204,8 +209,8 @@ if __name__ == "__main__":
 
     # fig 3
     # ==============================================
-    fig = plt.figure(3)
-    ax31 = fig.add_subplot(311, frameon=True)
+    fig = plt.figure(7)
+    #ax31 = fig.add_subplot(311, frameon=True)
     #plt.title("NavSys - roll and pitch angle out of a_y and a_z")
     plt.plot(time, data["roll"], label="roll angle")
     plt.plot(time, data["pitch"], label="pitch angle")
@@ -216,8 +221,9 @@ if __name__ == "__main__":
     #plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=5)
     plt.legend()
 
-    ax32 = fig.add_subplot(312, frameon=True)
 
+    fig = plt.figure(8)
+    #ax32 = fig.add_subplot(312, frameon=True)
     #plt.title("NavSys - slope")
     plt.plot(time, data["slope_height"], label="Slope")
     plt.xlabel("Time [sec]")
@@ -226,7 +232,8 @@ if __name__ == "__main__":
     #plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=5)
     plt.legend()
 
-    ax33 = fig.add_subplot(313, frameon=True)
+    fig = plt.figure(9)
+    #ax33 = fig.add_subplot(313, frameon=True)
     #plt.title("NavSys - Höhe")
     plt.plot(time, data["height"], label="Height out of Barometer median fit")
     plt.plot(time, data["height_savgol"], label="Height out of Barometer SG fit")
@@ -240,8 +247,8 @@ if __name__ == "__main__":
     # fig 4
     # ==============================================
 
-    fig = plt.figure(4)
-    ax41 = fig.add_subplot(111, frameon=True)
+    fig = plt.figure(10)
+    #ax41 = fig.add_subplot(111, frameon=True)
     plt.title("NavSys - Trajektory")
     plt.plot(lam_traj, phi_traj, label="Trajektory")
     plt.plot(lam_deg, phi_deg, label="Start", marker='^', markerfacecolor='red', markersize=6)
