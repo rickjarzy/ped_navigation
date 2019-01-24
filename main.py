@@ -28,6 +28,7 @@ if __name__ == "__main__":
     data = pdr_functions.create_data_matrix(r"data.txt")
 
     # filter raw data and store it on seperate Series using median and Savitzky Golay filters with different Moving windows
+    # till the data looks fine
     data["a_x_filtered"] = signal.savgol_filter(data["a_x"], 13, 2)
     data["a_y_filtered"] = signal.savgol_filter(data["a_y"], 13, 2)
     data["a_z_filtered"] = signal.savgol_filter(data["a_z"], 13, 2)

@@ -6,13 +6,16 @@ from scipy import stats
 # Navigation Systems - 2nd Lab Pedestrian Navigation - WS18/19
 # function file
 
-def LinReg(x):
-    time = numpy.arange(1,len(x)+1,1)
-    slope, intercept, r_val, p_val, std_err = stats.linregress(time,x)
-
-    return slope
 
 def write_phi_lam_txt(input_phi, input_lam, input_step, input_textspecifier):
+    """
+
+    :param input_phi:   a array like object that contains the phi information that should be written into a csv file
+    :param input_lam:   a array like object that contains the lam information that should be written into a csv file
+    :param input_step:  a array like object that contains the step size information that should be written into a csv file
+    :param input_textspecifier: a text string that is used in the text file name
+    :return: nothing due to the fact that the file can be created without handing something back
+    """
     cou = 0
     phi = input_phi
     lam = input_lam
