@@ -79,13 +79,13 @@ if __name__ == "__main__":
 
     # 3. step direction estimation
         # formulars from angabeblatt
-    data["roll"] = numpy.arctan2(-data["a_y_filtered"],  -data["a_z_filtered"])
-    data["pitch"] = numpy.arctan2(data["a_x_filtered"], numpy.sqrt( data["a_y_filtered"]**2 + data["a_z_filtered"]**2 ))
+    data["roll_raw"] = numpy.arctan2(-data["a_y_filtered"],  -data["a_z_filtered"])
+    data["pitch_raw"] = numpy.arctan2(data["a_x_filtered"], numpy.sqrt( data["a_y_filtered"]**2 + data["a_z_filtered"]**2 ))
 
-    data["roll"] = signal.medfilt(data["roll"], 51)
-    data["pitch"] = signal.medfilt(data["pitch"], 51)
-    data["roll"] = signal.savgol_filter(data["roll"], 51,2)
-    data["pitch"] = signal.savgol_filter(data["pitch"], 51, 2)
+    data["roll_med"] = signal.medfilt(data["roll_raw"], 51)
+    data["pitch_med"] = signal.medfilt(data["pitch_raw"], 51)
+    data["roll"] = signal.savgol_filter(data["roll_med"], 51,2)
+    data["pitch"] = signal.savgol_filter(data["pitch_med"], 51, 2)
 
         # calculate the yaw angle - HEADING
     gegen_kath = -data["m_y_filtered"] * numpy.cos(data["roll"]) + data["m_z_filtered"] * numpy.sin(data["roll"])
@@ -96,7 +96,7 @@ if __name__ == "__main__":
     data["yaw_mag_sgf"] = signal.savgol_filter(data["yaw_mag_median"], 81,3)
 
         #subdata yaw - HEADING
-    data_sub_yaw = data["yaw_mag_sgf"].iloc[indizes_p_min_heading]
+    data_sub_yaw = data["yaw_mag"].iloc[indizes_p_min_heading]
     data_sub_step = data["step_size"].iloc[indizes_p_min_heading]
     #print("data sub yaw\n", data_sub_yaw)
 
@@ -135,7 +135,7 @@ if __name__ == "__main__":
     time = [timestamp / 1000 for timestamp in data["time"].tolist()]          # [ms] -->[sec]
     fig = plt.figure(1)
     #ax11 = fig.add_subplot(211, frameon=True)
-    #plt.title("NavSys - Accelerometer Data")
+    plt.title("NavSys - Accelerometer Data")
     plt.plot(time, data["acc_total"], label="acc total", linewidth=3)
     plt.plot(time, data["acc_total_filtered"], label="acc total SG fit", linewidth=3)
     plt.xlabel("Time [sec]")
@@ -156,7 +156,7 @@ if __name__ == "__main__":
 
     fig = plt.figure(2)
     #ax12 = fig.add_subplot(312, frameon=True)
-    #plt.title("NavSys - Magnetometer Data")
+    plt.title("NavSys - Magnetometer Data")
     plt.plot(time, data["m_x"], label="mag x raw", linewidth=3)
     plt.plot(time, data["m_x_filtered"], label="mag x SG fit", linewidth=3)
     plt.plot(time, data["m_y"], label="mag y raw", linewidth=3)
@@ -171,7 +171,7 @@ if __name__ == "__main__":
 
     fig = plt.figure(3)
     #ax13 = fig.add_subplot(313, frameon=True)
-    #plt.title("NavSys - Find Peaks")
+    plt.title("NavSys - Find Peaks")
     #plt.plot(time, data["acc_total"], label="acc total")
     plt.plot(time, data["acc_total_filtered"], label="Acc total out of SG filtered components")
     plt.plot(time_peaks_max, data_peaks_max, label="Peaks Acc Total Max", marker='^', markerfacecolor='red', markersize=6,  linewidth=3)
@@ -187,7 +187,7 @@ if __name__ == "__main__":
     fig = plt.figure(4)
 
     #ax21 = fig.add_subplot(311, frameon=True)
-    #plt.title("NavSys - Barometer Data raw")
+    plt.title("NavSys - Barometer Data raw")
     plt.plot(time, data["baro"], label="Barometer data raw",  linewidth=3)
     plt.plot(time, data["baro_median_filt"], label="Barometer median fit",  linewidth=3)
     plt.xlabel("Time [sec]")
@@ -198,7 +198,7 @@ if __name__ == "__main__":
 
     fig = plt.figure(5)
     #ax22 = fig.add_subplot(312, frameon=True)
-    #plt.title("NavSys - Baro Filtering")
+    plt.title("NavSys - Baro Filtering")
     plt.xlabel("Time [sec]")
     plt.ylabel("Preausre [hPa]")
     plt.plot(time, data["baro_median_filt"], label="Barometer median fit",  linewidth=3)
@@ -209,7 +209,7 @@ if __name__ == "__main__":
 
     fig = plt.figure(6)
     #ax23 = fig.add_subplot(313, frameon=True)
-    #plt.title("NavSys - Höhe")
+    plt.title("NavSys - Height")
     plt.plot(time, data["height"], label="Height out of Barometer median fit",  linewidth=3)
     plt.plot(time, data["height_savgol"], label="Height out of Barometer SG fit",  linewidth=3)
     plt.grid(True)
@@ -223,11 +223,14 @@ if __name__ == "__main__":
     # ==============================================
     fig = plt.figure(7)
     #ax31 = fig.add_subplot(311, frameon=True)
-    #plt.title("NavSys - roll and pitch angle out of a_y and a_z")
-    plt.plot(time, data["roll"], label="roll angle",  linewidth=3)
-    plt.plot(time, data["pitch"], label="pitch angle",  linewidth=3)
+    plt.title("NavSys - Roll and Pitch angle out of a_y and a_z with different filter methods")
+    plt.plot(time, data["roll_raw"], label="roll angle raw data",  linewidth=3)
+    plt.plot(time, data["roll_med"], label="roll angle med fit", linewidth=3)
+    plt.plot(time, data["roll"], label="roll angle SG fit", linewidth=3)
+    plt.plot(time, data["pitch_raw"], label="pitch angle raw data",  linewidth=3)
+    plt.plot(time, data["pitch_med"], label="pitch angle med fit", linewidth=3)
+    plt.plot(time, data["pitch"], label="pitch angle SG fit", linewidth=3)
     plt.plot(time, data["yaw_mag"], label="yaw magnetic angle",  linewidth=3)
-    plt.plot(time, data["yaw_mag_sgf"], label="yaw mag SG fit", linewidth=3)
     plt.xlabel("time [sec]")
     plt.ylabel("rad []")
     plt.grid(True)
@@ -237,7 +240,7 @@ if __name__ == "__main__":
 
     fig = plt.figure(8)
     #ax32 = fig.add_subplot(312, frameon=True)
-    #plt.title("NavSys - slope")
+    plt.title("NavSys - Slope")
     plt.plot(time, data["slope_height"], label="Slope",  linewidth=3)
     plt.xlabel("Time [sec]")
     plt.ylabel("Slope []")
@@ -247,7 +250,7 @@ if __name__ == "__main__":
 
     fig = plt.figure(9)
     #ax33 = fig.add_subplot(313, frameon=True)
-    #plt.title("NavSys - Höhe")
+    plt.title("NavSys - Height")
     plt.plot(time, data["height"], label="Height out of Barometer median fit",  linewidth=3)
     plt.plot(time, data["height_savgol"], label="Height out of Barometer SG fit",  linewidth=3)
     plt.grid(True)
