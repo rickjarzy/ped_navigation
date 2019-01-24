@@ -6,6 +6,18 @@ from scipy import stats
 # Navigation Systems - 2nd Lab Pedestrian Navigation - WS18/19
 # function file
 
+def LinReg(x):
+    """
+    this is the function that is handed to the generic filter algo of numpy
+    it will move a window and calculate the regression parameters
+    :param x: input window of the time series
+    :return: slope of the calculated regression line
+    """
+    time = numpy.arange(1,len(x)+1,1)
+    slope, intercept, r_val, p_val, std_err = stats.linregress(time,x)
+
+    return slope
+
 
 def write_phi_lam_txt(input_phi, input_lam, input_step, input_textspecifier):
     """
