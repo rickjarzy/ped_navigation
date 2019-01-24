@@ -82,23 +82,30 @@ if __name__ == "__main__":
     data["roll"] = numpy.arctan2(-data["a_y_filtered"],  -data["a_z_filtered"])
     data["pitch"] = numpy.arctan2(data["a_x_filtered"], numpy.sqrt( data["a_y_filtered"]**2 + data["a_z_filtered"]**2 ))
 
+    data["roll"] = signal.medfilt(data["roll"], 51)
+    data["pitch"] = signal.medfilt(data["pitch"], 51)
+    data["roll"] = signal.savgol_filter(data["roll"], 51,2)
+    data["pitch"] = signal.savgol_filter(data["pitch"], 51, 2)
+
         # calculate the yaw angle - HEADING
     gegen_kath = -data["m_y_filtered"] * numpy.cos(data["roll"]) + data["m_z_filtered"] * numpy.sin(data["roll"])
     an_kath = data["m_x_filtered"] * numpy.cos(data["pitch"]) + data["m_y_filtered"] * numpy.sin(data["pitch"]) * numpy.sin(data["roll"]) + data["m_z_filtered"] * numpy.sin(data["pitch"]) * numpy.cos(data["roll"])
 
     data["yaw_mag"] = numpy.arctan2(gegen_kath , an_kath)
+    data["yaw_mag_median"] = signal.medfilt(data["yaw_mag"],15)
+    data["yaw_mag_sgf"] = signal.savgol_filter(data["yaw_mag_median"], 81,3)
 
         #subdata yaw - HEADING
-    data_sub_yaw = data["yaw_mag"].iloc[indizes_p_min_heading]
+    data_sub_yaw = data["yaw_mag_sgf"].iloc[indizes_p_min_heading]
     data_sub_step = data["step_size"].iloc[indizes_p_min_heading]
     #print("data sub yaw\n", data_sub_yaw)
 
 
-    #north_delta = data_sub_step * numpy.cos(data_sub_yaw)        # later on transformed to d_phi
-    #east_delta = data_sub_step * numpy.sin(data_sub_yaw)
+    north_delta = data_sub_step * numpy.cos(data_sub_yaw)        # later on transformed to d_phi
+    east_delta = data_sub_step * numpy.sin(data_sub_yaw)
 
-    north_delta = step_fix * numpy.cos(data_sub_yaw)  # later on transformed to d_phi
-    east_delta = step_fix * numpy.sin(data_sub_yaw)
+    #north_delta = step_fix * numpy.cos(data_sub_yaw)  # later on transformed to d_phi
+    #east_delta = step_fix * numpy.sin(data_sub_yaw)
 
     #print("north_delta\n", north_delta)
 
@@ -119,7 +126,7 @@ if __name__ == "__main__":
     phi_traj = d_phi_deg_csum + phi_deg
     lam_traj = d_lam_deg_csum + lam_deg
 
-    pdr_functions.write_phi_lam_txt(phi_traj, lam_traj, data_sub_step,  "min_peaks_all_sensors_filtered_one_stepsize")
+    pdr_functions.write_phi_lam_txt(phi_traj, lam_traj, data_sub_step,  "min_peaks_all_sensors_filtered_yaw_sgf_dyn_stepsize")
 
 
     # plotting the data
@@ -220,6 +227,7 @@ if __name__ == "__main__":
     plt.plot(time, data["roll"], label="roll angle",  linewidth=3)
     plt.plot(time, data["pitch"], label="pitch angle",  linewidth=3)
     plt.plot(time, data["yaw_mag"], label="yaw magnetic angle",  linewidth=3)
+    plt.plot(time, data["yaw_mag_sgf"], label="yaw mag SG fit", linewidth=3)
     plt.xlabel("time [sec]")
     plt.ylabel("rad []")
     plt.grid(True)
